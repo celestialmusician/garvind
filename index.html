@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GARVIND — Parametric 3D Printing Studio</title>
+<meta name="description" content="GARVIND · Custom 3D printing studio. Keychains, figurines, cosplay props, desk decor — designed, sliced, printed, and shipped nationwide.">
+<meta name="theme-color" content="#0A0B10">
+
+<!-- Open Graph / Social Media -->
+<meta property="og:title" content="GARVIND — Parametric 3D Printing Studio">
+<meta property="og:description" content="Your ideas, printed layer by layer. Small-batch 3D printing for keychains, figurines, props, and custom STL files.">
+<meta property="og:type" content="website">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- Tailwind CSS v4 Browser Engine -->
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+<!-- Custom Styles & Theme Overrides -->
+<link rel="stylesheet" href="css/style.css?v=8">
+
+<!-- Favicon -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230A0B10%22/><path d=%22M20 70 L50 20 L80 70 Z%22 fill=%22%2300F5A0%22/></svg>">
+</head>
+<body class="bg-[#0A0B10] text-[#F5F3EE] font-sans antialiased selection:bg-[#00F5A0] selection:text-neutral-950">
+
+<!-- ============ TOP SCROLL PROGRESS BAR ============ -->
+<div id="scrollProgress" class="fixed top-0 left-0 h-[3px] bg-gradient-to-r from-[#00F5A0] via-[#00D2FF] to-[#D4AF37] z-[10000] w-0 transition-all duration-75 shadow-[0_0_15px_#00F5A0]"></div>
+
+<!-- ============ PRELOADER ============ -->
+<div class="preloader fixed inset-0 z-[10000] bg-[#0A0B10] flex items-center justify-center transition-opacity duration-500" id="preloader" aria-label="Loading GARVIND website">
+  <div class="text-center w-72">
+    <span class="font-['Space_Grotesk'] text-2xl font-bold tracking-wider text-[#00F5A0]">◆ GARVIND</span>
+    <div class="w-full h-1 bg-white/10 my-5 rounded-full overflow-hidden">
+      <div class="h-full w-0 bg-gradient-to-r from-[#00F5A0] via-[#00D2FF] to-[#D4AF37] transition-all duration-150" id="preloaderFill"></div>
+    </div>
+    <span class="font-mono text-xs text-neutral-400" id="preloaderPct">0%</span>
+    <span class="block mt-1.5 font-mono text-[11px] text-neutral-400" id="preloaderLabel">heating heatbed &amp; slicing parametric model…</span>
+  </div>
+</div>
+
+<!-- ============ MACRO BOKEH CURSOR LENS ============ -->
+<div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+
+<!-- ============ NAV HEADER ============ -->
+<header class="fixed top-0 inset-x-0 z-[1000] flex items-center justify-between px-6 md:px-16 py-4 bg-[#0A0B10]/90 backdrop-blur-xl border-b border-white/10 transition-all duration-300" id="siteNav">
+  <a href="index.html" class="font-['Space_Grotesk'] font-bold text-xl tracking-wider flex items-center gap-2 text-white group" aria-label="GARVIND Home">
+    <span class="text-[#00F5A0] group-hover:scale-125 transition-transform duration-300">◆</span> GARVIND
+  </a>
+  
+  <nav class="hidden lg:flex items-center gap-8 text-sm font-medium" id="navLinks" aria-label="Main Navigation">
+    <a href="index.html" class="text-[#00F5A0] font-semibold relative py-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-full after:h-0.5 after:bg-[#00F5A0]">Home</a>
+    <a href="shop.html" class="text-neutral-300 hover:text-white transition-colors relative py-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-0.5 after:bg-[#00F5A0] hover:after:w-full after:transition-all">Catalog &amp; Shop</a>
+    <a href="calculator.html" class="text-neutral-300 hover:text-white transition-colors relative py-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-0.5 after:bg-[#00F5A0] hover:after:w-full after:transition-all">Instant Quote</a>
+    <a href="custom.html" class="text-neutral-300 hover:text-white transition-colors relative py-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-0.5 after:bg-[#00F5A0] hover:after:w-full after:transition-all">Custom Order</a>
+    <a href="gallery.html" class="text-neutral-300 hover:text-white transition-colors relative py-1 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-0.5 after:bg-[#00F5A0] hover:after:w-full after:transition-all">Gallery &amp; FAQs</a>
+  </nav>
+
+  <div class="flex items-center gap-3.5">
+    <div class="flex items-center gap-1.5 bg-[#181B26] p-1.5 rounded-full border border-white/15 shadow-inner" id="themeSwitcher" title="Switch Studio Theme Palette">
+      <button class="theme-dot active w-3.5 h-3.5 rounded-full border-none cursor-pointer opacity-70 transition-all hover:opacity-100 hover:scale-125" data-theme="gold" style="background:#D4AF37;" aria-label="Masterpiece Gold Theme"></button>
+      <button class="theme-dot w-3.5 h-3.5 rounded-full border-none cursor-pointer opacity-70 transition-all hover:opacity-100 hover:scale-125" data-theme="mint" style="background:#00F5A0;" aria-label="Precision Mint Theme"></button>
+      <button class="theme-dot w-3.5 h-3.5 rounded-full border-none cursor-pointer opacity-70 transition-all hover:opacity-100 hover:scale-125" data-theme="violet" style="background:#8B5CF6;" aria-label="Artisan Violet Theme"></button>
+      <button class="theme-dot w-3.5 h-3.5 rounded-full border-none cursor-pointer opacity-70 transition-all hover:opacity-100 hover:scale-125" data-theme="amber" style="background:#F59E0B;" aria-label="Heatbed Amber Theme"></button>
+    </div>
+
+    <a class="btn-wa-direct btn-magnetic hidden sm:inline-flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-full border border-white/20 hover:bg-[#00F5A0] hover:text-neutral-950 hover:border-[#00F5A0] transition-all duration-300 shadow-sm" id="headerWaBtn" href="#" target="_blank" rel="noopener">
+      <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+        <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.04 14.69 2 12.04 2Z"/>
+      </svg>
+      <span>Order on WhatsApp</span>
+    </a>
+
+    <button class="nav-burger lg:hidden flex flex-col justify-center items-center gap-1.5 bg-[#181B26] border border-white/20 rounded-xl w-11 h-11 p-2.5 cursor-pointer relative z-[1005]" id="navBurger" aria-label="Toggle mobile menu" aria-expanded="false" aria-controls="mobileDrawer">
+      <span class="w-5 h-0.5 bg-white block transition-all duration-300"></span>
+      <span class="w-5 h-0.5 bg-white block transition-all duration-300"></span>
+      <span class="w-5 h-0.5 bg-white block transition-all duration-300"></span>
+    </button>
+  </div>
+</header>
+
+<!-- ============ MOBILE NAVIGATION OVERLAY ============ -->
+<div class="mobile-menu-backdrop" id="drawerBackdrop" aria-hidden="true"></div>
+<div class="mobile-menu-overlay" id="mobileDrawer" aria-label="Mobile Navigation Menu" aria-hidden="true">
+  <div class="px-6 py-6 max-w-md mx-auto w-full flex flex-col justify-between min-h-[calc(100vh-100px)]">
+    <nav class="flex flex-col gap-3">
+      <a href="index.html" class="text-base font-semibold text-[#00F5A0] px-4 py-3.5 rounded-xl flex items-center gap-3.5 bg-white/10 border border-[#00F5A0]/50 transition-all">
+        <span class="font-mono text-xs text-[#00F5A0] font-bold">01</span> Home
+      </a>
+      <a href="shop.html" class="text-base font-semibold text-white px-4 py-3.5 rounded-xl flex items-center gap-3.5 bg-white/5 border border-white/10 hover:border-[#00F5A0] hover:text-[#00F5A0] transition-all">
+        <span class="font-mono text-xs text-[#00F5A0] font-bold">02</span> Catalog &amp; Shop
+      </a>
+      <a href="calculator.html" class="text-base font-semibold text-white px-4 py-3.5 rounded-xl flex items-center gap-3.5 bg-white/5 border border-white/10 hover:border-[#00F5A0] hover:text-[#00F5A0] transition-all">
+        <span class="font-mono text-xs text-[#00F5A0] font-bold">03</span> Price Estimator
+      </a>
+      <a href="custom.html" class="text-base font-semibold text-white px-4 py-3.5 rounded-xl flex items-center gap-3.5 bg-white/5 border border-white/10 hover:border-[#00F5A0] hover:text-[#00F5A0] transition-all">
+        <span class="font-mono text-xs text-[#00F5A0] font-bold">04</span> Custom Request
+      </a>
+      <a href="gallery.html" class="text-base font-semibold text-white px-4 py-3.5 rounded-xl flex items-center gap-3.5 bg-white/5 border border-white/10 hover:border-[#00F5A0] hover:text-[#00F5A0] transition-all">
+        <span class="font-mono text-xs text-[#00F5A0] font-bold">05</span> Gallery &amp; FAQs
+      </a>
+    </nav>
+    
+    <div class="flex flex-col gap-3 mt-6 pt-5 border-t border-white/10">
+      <a class="btn-wa-direct btn-magnetic w-full inline-flex items-center justify-center gap-2 font-semibold px-6 py-3.5 rounded-full bg-[#00F5A0] text-neutral-950 hover:bg-[#34ffb2] transition-all shadow-lg shadow-[#00F5A0]/20 text-sm" id="drawerWaBtn" href="#" target="_blank" rel="noopener">
+        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+          <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.04 14.69 2 12.04 2Z"/>
+        </svg>
+        <span>Chat on WhatsApp</span>
+      </a>
+      <p class="text-xs text-neutral-400 text-center leading-relaxed m-0">
+        📍 Thiruvananthapuram, India · ✉️ <a href="mailto:hello@garvind.in" class="text-[#00F5A0] underline">hello@garvind.in</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<main id="top">
+  <!-- Full-Page Scroll-Synced 3D WebGL Canvas -->
+  <canvas id="heroCanvas" class="fullpage-canvas" aria-label="Parametric 3D Materialization Model"></canvas>
+
+  <!-- ============ HERO — PARAMETRIC MATERIALIZATION ============ -->
+  <section class="relative min-h-screen flex flex-col justify-center px-6 md:px-16 pt-36 pb-20 overflow-hidden" id="hero">
+    <div class="hero-grid-lines" aria-hidden="true"></div>
+
+    <div class="relative z-10 max-w-2xl">
+      <div class="inline-flex items-center gap-2.5 font-mono text-xs text-neutral-200 border border-white/20 px-4 py-1.5 rounded-full mb-7 bg-[#181B26]/80 backdrop-blur-md shadow-lg" data-scroll-reveal>
+        <span class="w-2 h-2 rounded-full bg-[#00F5A0] shadow-[0_0_14px_#00F5A0] animate-pulse"></span>
+        <span>🔥 Parametric Slicer: 215°C · Titanium &amp; Glass Matrix</span>
+      </div>
+
+      <h1 class="hero-title font-['Space_Grotesk'] text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.98] mb-6" id="printedTitle">
+        <span class="line" data-line>PARAMETRIC</span>
+        <span class="line" data-line><em class="not-italic text-[#00F5A0]">MATERIALIZATION</em></span>
+        <span class="line" data-line>IN <em class="not-italic text-[#D4AF37]">REAL-TIME.</em></span>
+      </h1>
+
+      <p class="text-neutral-300 text-base sm:text-lg max-w-xl mb-8 leading-relaxed" data-scroll-reveal class="stagger-1">
+        GARVIND is a high-end parametric 3D studio. Sculptures, keychains, figurines, cosplay props, and CAD models — emerging from liquid build plates into titanium &amp; glass precision.
+      </p>
+
+      <div class="flex flex-wrap gap-4 mb-10" data-scroll-reveal class="stagger-2">
+        <a href="shop.html" class="btn-magnetic inline-flex items-center justify-center font-semibold px-7 py-3.5 rounded-full bg-[#00F5A0] text-neutral-950 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#00F5A0]/30 transition-all duration-300">Browse Full Catalog</a>
+        <a href="calculator.html" class="btn-magnetic inline-flex items-center justify-center font-semibold px-7 py-3.5 rounded-full border border-white/20 text-white hover:border-[#00F5A0] hover:text-[#00F5A0] hover:-translate-y-1 transition-all duration-300">Instant Price Calculator</a>
+      </div>
+
+      <!-- Live 3D Model Slicer Controller Widget -->
+      <div class="bg-[#181B26] border border-white/15 rounded-2xl p-5 mb-11 max-w-lg shadow-2xl backdrop-blur-sm" id="slicerWidget" data-scroll-reveal class="stagger-3">
+        <div class="flex justify-between items-center mb-3.5 text-xs sm:text-sm">
+          <span class="font-semibold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-[#00F5A0]"></span>
+            <span>🎮 3D Filament Visualizer</span>
+          </span>
+          <span class="font-mono text-[#00F5A0] text-xs font-bold" id="slicerStatus">Titanium Gyroid · 0.15mm</span>
+        </div>
+        
+        <div class="flex flex-col gap-3.5">
+          <div class="material-pills flex gap-2 overflow-x-auto pb-1 scrollbar-none" id="heroMaterialPills">
+            <button class="mat-pill active px-3.5 py-2 rounded-full border border-white/15 bg-[#0A0B10] text-neutral-300 text-xs min-h-[44px] flex items-center whitespace-nowrap hover:text-white transition-all cursor-pointer" data-mat="0">Matte Titanium</button>
+            <button class="mat-pill px-3.5 py-2 rounded-full border border-white/15 bg-[#0A0B10] text-neutral-300 text-xs min-h-[44px] flex items-center whitespace-nowrap hover:text-white transition-all cursor-pointer" data-mat="1">Silk Gold</button>
+            <button class="mat-pill px-3.5 py-2 rounded-full border border-white/15 bg-[#0A0B10] text-neutral-300 text-xs min-h-[44px] flex items-center whitespace-nowrap hover:text-white transition-all cursor-pointer" data-mat="2">Galaxy Purple</button>
+            <button class="mat-pill px-3.5 py-2 rounded-full border border-white/15 bg-[#0A0B10] text-neutral-300 text-xs min-h-[44px] flex items-center whitespace-nowrap hover:text-white transition-all cursor-pointer" data-mat="3">Neon Mint</button>
+            <button class="mat-pill px-3.5 py-2 rounded-full border border-white/15 bg-[#0A0B10] text-neutral-300 text-xs min-h-[44px] flex items-center whitespace-nowrap hover:text-white transition-all cursor-pointer" data-mat="4">TPU Flex</button>
+          </div>
+
+          <div class="flex items-center justify-between gap-4 text-xs text-neutral-300">
+            <label for="heroLayerSlider">Layer Height: <span id="layerVal" class="text-white font-mono font-bold">0.15</span>mm</label>
+            <input type="range" id="heroLayerSlider" min="0.10" max="0.30" step="0.01" value="0.15" class="flex-1 accent-[#00F5A0] cursor-pointer min-h-[36px]">
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-10" data-scroll-reveal class="stagger-4">
+        <div>
+          <div class="flex items-baseline gap-1 font-['Space_Grotesk'] text-3xl font-bold text-white">
+            <span class="stat-num" data-count="0.1">0.1</span>
+            <span class="font-mono text-sm text-[#00F5A0]">mm</span>
+          </div>
+          <span class="block font-mono text-[11px] text-neutral-400 uppercase tracking-wider mt-1">min layer height</span>
+        </div>
+        <div>
+          <div class="flex items-baseline gap-1 font-['Space_Grotesk'] text-3xl font-bold text-white">
+            <span class="stat-num" data-count="48">0</span>
+            <span class="font-mono text-sm text-[#00F5A0]">hrs</span>
+          </div>
+          <span class="block font-mono text-[11px] text-neutral-400 uppercase tracking-wider mt-1">avg turnaround</span>
+        </div>
+        <div>
+          <div class="flex items-baseline gap-1 font-['Space_Grotesk'] text-3xl font-bold text-white">
+            <span class="stat-num" data-count="500">0</span>
+            <span class="font-mono text-sm text-[#00F5A0]">+</span>
+          </div>
+          <span class="block font-mono text-[11px] text-neutral-400 uppercase tracking-wider mt-1">prints delivered</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MARQUEE STRIP ============ -->
+  <section class="py-4 border-y border-white/10 overflow-hidden bg-[#12141D]" aria-hidden="true">
+    <div class="marquee-track">
+      <span>PARAMETRIC SCULPTURE</span><span>·</span>
+      <span>TITANIUM GYROID</span><span>·</span>
+      <span>VORONOI MESH</span><span>·</span>
+      <span>TPU FLEXIBLE</span><span>·</span>
+      <span>HIGH DETAIL RESIN</span><span>·</span>
+      <span>GALAXY PURPLE</span><span>·</span>
+      <span>NEON MINT</span><span>·</span>
+      <span>SILK GOLD</span><span>·</span>
+    </div>
+  </section>
+
+  <!-- ============ PROCESS SUMMARY ============ -->
+  <section class="py-24 relative bg-[#0A0B10]" id="process">
+    <div class="px-6 md:px-16 mb-12" data-scroll-reveal>
+      <span class="font-mono text-xs text-[#00F5A0] uppercase tracking-widest block mb-3">// studio workflow</span>
+      <h2 class="font-['Space_Grotesk'] text-3xl sm:text-5xl font-bold tracking-tight">From your screen to<br>a real object on your desk.</h2>
+    </div>
+
+    <div class="process-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 border-y border-white/10 mx-6 md:mx-16">
+      <div class="process-step tilt-card bg-[#12141D] p-8 hover:bg-[#181B26] transition-colors" data-scroll-reveal class="stagger-1">
+        <span class="font-mono text-[#00F5A0] text-xs font-bold block mb-4">01</span>
+        <h3 class="font-['Space_Grotesk'] text-lg font-bold mb-2.5">Send your idea or file</h3>
+        <p class="text-neutral-400 text-sm leading-relaxed">An STL file, CAD design, sketch, photo, or reference link. Drop it in our custom form.</p>
+      </div>
+      <div class="process-step tilt-card bg-[#12141D] p-8 hover:bg-[#181B26] transition-colors" data-scroll-reveal class="stagger-2">
+        <span class="font-mono text-[#00F5A0] text-xs font-bold block mb-4">02</span>
+        <h3 class="font-['Space_Grotesk'] text-lg font-bold mb-2.5">Modeling &amp; Slicing</h3>
+        <p class="text-neutral-400 text-sm leading-relaxed">We check wall thickness, orient support structures, and slice G-code tailored to your material.</p>
+      </div>
+      <div class="process-step tilt-card bg-[#12141D] p-8 hover:bg-[#181B26] transition-colors" data-scroll-reveal class="stagger-3">
+        <span class="font-mono text-[#00F5A0] text-xs font-bold block mb-4">03</span>
+        <h3 class="font-['Space_Grotesk'] text-lg font-bold mb-2.5">Precision Printing</h3>
+        <p class="text-neutral-400 text-sm leading-relaxed">The heatbed levels, nozzle heats to 215°C, and your model builds layer-by-layer.</p>
+      </div>
+      <div class="process-step tilt-card bg-[#12141D] p-8 hover:bg-[#181B26] transition-colors" data-scroll-reveal class="stagger-4">
+        <span class="font-mono text-[#00F5A0] text-xs font-bold block mb-4">04</span>
+        <h3 class="font-['Space_Grotesk'] text-lg font-bold mb-2.5">Finished &amp; Shipped</h3>
+        <p class="text-neutral-400 text-sm leading-relaxed">Supports removed, edges hand-sanded, quality-checked, and safely packed with tracking.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURED CATALOG PREVIEW ============ -->
+  <section class="py-24 relative bg-[#0A0B10]">
+    <div class="px-6 md:px-16 mb-10 flex justify-between items-end gap-6 flex-wrap" data-scroll-reveal>
+      <div>
+        <span class="font-mono text-xs text-[#00F5A0] uppercase tracking-widest block mb-3">// featured collection</span>
+        <h2 class="font-['Space_Grotesk'] text-3xl sm:text-5xl font-bold tracking-tight">Popular studio prints.</h2>
+      </div>
+      <a href="shop.html" class="btn-magnetic inline-flex items-center justify-center font-semibold px-6 py-3 rounded-full border border-white/20 text-white hover:border-[#00F5A0] hover:text-[#00F5A0] transition-all min-h-[44px]">Explore Full Shop Catalog ↗</a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-6 md:px-16" id="homeFeaturedGrid">
+      <!-- Rendered dynamically -->
+    </div>
+  </section>
+
+  <!-- ============ QUICK MULTI-PAGE ACTION CARDS ============ -->
+  <section class="py-24 bg-[#12141D] relative px-6 md:px-16">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <a href="shop.html" class="tilt-card bg-[#181B26] border border-white/15 rounded-3xl p-8 hover:border-[#00F5A0] transition-all flex flex-col justify-between group">
+        <div>
+          <span class="text-3xl mb-4 block">🛍️</span>
+          <h3 class="font-['Space_Grotesk'] text-2xl font-bold mb-2 text-white">Full Catalog Shop</h3>
+          <p class="text-neutral-400 text-sm leading-relaxed mb-6">Explore keychains, dragons, cosplay props, and desk decor with instant filters &amp; search.</p>
+        </div>
+        <span class="font-semibold text-xs text-[#00F5A0] group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">Browse Catalog ↗</span>
+      </a>
+
+      <a href="calculator.html" class="tilt-card bg-[#181B26] border border-white/15 rounded-3xl p-8 hover:border-[#00F5A0] transition-all flex flex-col justify-between group">
+        <div>
+          <span class="text-3xl mb-4 block">🧮</span>
+          <h3 class="font-['Space_Grotesk'] text-2xl font-bold mb-2 text-white">Instant Price Calculator</h3>
+          <p class="text-neutral-400 text-sm leading-relaxed mb-6">Calculate 3D print weight, print time, and price before placing an order.</p>
+        </div>
+        <span class="font-semibold text-xs text-[#00F5A0] group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">Calculate Estimate ↗</span>
+      </a>
+
+      <a href="custom.html" class="tilt-card bg-[#181B26] border border-white/15 rounded-3xl p-8 hover:border-[#00F5A0] transition-all flex flex-col justify-between group">
+        <div>
+          <span class="text-3xl mb-4 block">📁</span>
+          <h3 class="font-['Space_Grotesk'] text-2xl font-bold mb-2 text-white">Custom Order &amp; File Upload</h3>
+          <p class="text-neutral-400 text-sm leading-relaxed mb-6">Drop your STL, OBJ, or photo file for a direct WhatsApp quote from our studio.</p>
+        </div>
+        <span class="font-semibold text-xs text-[#00F5A0] group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">Submit Custom Brief ↗</span>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-[#12141D] pt-16 pb-8 border-t border-white/10 px-6 md:px-16">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12">
+    <div class="md:col-span-2 flex flex-col gap-3 font-['Space_Grotesk'] text-xl">
+      <div class="flex items-center gap-2 font-bold">
+        <span class="text-[#00F5A0]">◆</span> GARVIND
+      </div>
+      <p class="font-sans text-neutral-400 text-xs sm:text-sm max-w-sm font-normal leading-relaxed">
+        Small-batch custom 3D printing studio. High-precision layer height, quality materials, printed on demand.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <h4 class="font-mono text-xs text-neutral-400 uppercase tracking-widest mb-1">Navigation</h4>
+      <a href="index.html" class="text-sm text-neutral-300 hover:text-[#00F5A0] transition-colors">Home</a>
+      <a href="shop.html" class="text-sm text-neutral-300 hover:text-[#00F5A0] transition-colors">Catalog Shop</a>
+      <a href="calculator.html" class="text-sm text-neutral-300 hover:text-[#00F5A0] transition-colors">Price Estimator</a>
+      <a href="custom.html" class="text-sm text-neutral-300 hover:text-[#00F5A0] transition-colors">Custom Order</a>
+      <a href="gallery.html" class="text-sm text-neutral-300 hover:text-[#00F5A0] transition-colors">Gallery &amp; FAQs</a>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <h4 class="font-mono text-xs text-neutral-400 uppercase tracking-widest mb-1">Contact &amp; Social</h4>
+      <a href="#" target="_blank" rel="noopener" class="btn-wa-direct text-sm text-neutral-300 hover:text-[#00F5A0] transition-colors" id="footerWaBtn">WhatsApp Chat</a>
+      <a href="mailto:hello@garvind.in" class="text-sm text-neutral-300 hover:text-[#00F5A0] transition-colors">hello@garvind.in</a>
+      <a href="https://www.instagram.com/garv_ind" target="_blank" rel="noopener" class="text-sm text-neutral-300 hover:text-[#00F5A0] transition-colors">Instagram @garv_ind</a>
+      <span class="text-xs text-neutral-400 font-mono">Thiruvananthapuram, Kerala</span>
+    </div>
+  </div>
+
+  <div class="border-t border-white/10 pt-6 flex flex-wrap justify-between items-center gap-4 font-mono text-xs text-neutral-400">
+    <span>© <span id="year"></span> GARVIND. All prints made to order.</span>
+    <span>Designed for perfection on every bed level.</span>
+  </div>
+</footer>
+
+<button class="back-to-top fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-white text-neutral-950 text-lg font-bold border-none cursor-pointer opacity-0 translate-y-3 transition-all pointer-events-none" id="backToTop" aria-label="Back to top">↑</button>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/data.js?v=8"></script>
+<script src="js/main.js?v=8"></script>
+</body>
+</html>

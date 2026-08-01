@@ -1,0 +1,205 @@
+/* ==========================================================================
+   GARVIND — Parametric Materialization (Full-Page 3D Canvas System)
+   ========================================================================== */
+
+@import "tailwindcss";
+
+@theme {
+  --color-studio-bg: #0A0B10;
+  --color-studio-alt: #12141D;
+  --color-studio-card: #181B26;
+  --color-studio-card-hover: #202433;
+
+  /* Parametric Materialization Accent: Bioluminescent Cyan & Titanium Gold */
+  --color-accent: #00F5A0;
+  --color-accent-gold: #D4AF37;
+  --color-accent-cyan: #00D2FF;
+  --color-accent-glow: rgba(0, 245, 160, 0.35);
+
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "Inter", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+  background-color: #0A0B10;
+}
+
+body {
+  margin: 0;
+  background-color: #0A0B10;
+  color: #F5F3EE;
+  font-family: "Inter", sans-serif;
+  overflow-x: hidden;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body { cursor: none; }
+}
+
+/* ============ FULL-PAGE FIXED 3D CANVAS ============ */
+.fullpage-canvas {
+  position: fixed; inset: 0; width: 100vw; height: 100vh;
+  z-index: 0; pointer-events: none; opacity: 0.55;
+  transition: opacity 0.5s ease;
+}
+@media (max-width: 768px) {
+  .fullpage-canvas { opacity: 0.35; }
+}
+
+/* Transparent Glowing Cursor Lens */
+.cursor-dot, .cursor-ring {
+  position: fixed; top: 0; left: 0; pointer-events: none; z-index: 99999;
+  border-radius: 50%; transform: translate(-50%, -50%); will-change: transform;
+}
+.cursor-dot {
+  width: 14px; height: 14px;
+  background: rgba(0, 245, 160, 0.2);
+  border: 2px solid rgba(0, 245, 160, 0.95);
+  box-shadow: 0 0 18px rgba(0, 245, 160, 0.9), 0 0 35px rgba(0, 210, 255, 0.7);
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+  transition: background .2s, width .2s, height .2s, box-shadow .2s, border-color .2s;
+}
+.cursor-ring {
+  width: 54px; height: 54px;
+  border: 1.5px solid rgba(0, 245, 160, 0.6);
+  background: radial-gradient(circle, rgba(0, 245, 160, 0.12) 0%, rgba(0, 210, 255, 0.04) 50%, transparent 75%);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 0 30px rgba(0, 245, 160, 0.45), inset 0 0 20px rgba(0, 245, 160, 0.3);
+  transition: width .25s cubic-bezier(0.16, 1, 0.3, 1), height .25s cubic-bezier(0.16, 1, 0.3, 1), border-color .2s, background-color .2s, box-shadow .2s;
+}
+.cursor-ring.is-active {
+  width: 82px; height: 82px;
+  border-color: rgba(212, 175, 55, 0.9);
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.18) 0%, transparent 75%);
+  box-shadow: 0 0 45px rgba(212, 175, 55, 0.7), inset 0 0 25px rgba(212, 175, 55, 0.45);
+}
+
+@media (hover: none), (pointer: coarse) {
+  .cursor-dot, .cursor-ring { display: none !important; }
+}
+
+/* Preloader */
+.preloader {
+  position: fixed; inset: 0; z-index: 10000; background: #0A0B10;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .5s ease, visibility .5s ease;
+}
+.preloader.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+/* Frosted Titanium Glass Cards */
+.tilt-card {
+  position: relative;
+  background: rgba(24, 27, 38, 0.85);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.tilt-card:hover {
+  border-color: rgba(0, 245, 160, 0.4);
+  box-shadow: 0 25px 50px -15px rgba(0, 245, 160, 0.25), 0 0 30px rgba(0, 210, 255, 0.15);
+}
+.tilt-card .thumb-shape, .tilt-card .product-thumb {
+  transform: translateZ(32px);
+  transition: transform 0.25s ease-out;
+}
+
+/* Magnetic Buttons Spring Transition */
+.btn-magnetic {
+  will-change: transform;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, background-color 0.3s ease;
+}
+.btn-magnetic:hover {
+  box-shadow: 0 14px 35px -8px rgba(0, 245, 160, 0.4);
+}
+
+/* Hero background grid */
+.hero-grid-lines {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 60% at 60% 40%, black 10%, transparent 75%);
+}
+
+/* Layer reveal animation for hero title */
+.hero-title .line {
+  display: block; clip-path: inset(0 0 100% 0);
+  animation: layerReveal .9s cubic-bezier(.16, .84, .44, 1) forwards; animation-play-state: paused;
+}
+.hero-title .line:nth-child(1) { animation-delay: 0.05s; }
+.hero-title .line:nth-child(2) { animation-delay: 0.22s; }
+.hero-title .line:nth-child(3) { animation-delay: 0.39s; }
+.hero-title.is-visible .line { animation-play-state: running; }
+
+@keyframes layerReveal {
+  0% { clip-path: inset(0 0 100% 0); transform: translateY(14px); }
+  100% { clip-path: inset(0 0 0% 0); transform: translateY(0); }
+}
+
+/* Scroll-Driven Staggered Entrance Animations */
+[data-scroll-reveal] {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+[data-scroll-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+[data-scroll-reveal].stagger-1 { transition-delay: 0.1s; }
+[data-scroll-reveal].stagger-2 { transition-delay: 0.22s; }
+[data-scroll-reveal].stagger-3 { transition-delay: 0.34s; }
+[data-scroll-reveal].stagger-4 { transition-delay: 0.46s; }
+
+/* Marquee infinite scroll */
+.marquee-track {
+  display: inline-flex; white-space: nowrap; gap: 24px;
+  font-family: "JetBrains Mono", monospace; font-size: 0.88rem; color: #9DA3B4;
+  animation: marquee 24s linear infinite;
+}
+.marquee-track span:nth-child(4n+1) { color: #00F5A0; font-weight: 700; }
+.marquee-track span:nth-child(4n+3) { color: #00D2FF; font-weight: 700; }
+@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+/* Mobile Menu Animation */
+.mobile-menu-backdrop {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  z-index: 990; opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(.16, .84, .44, 1), visibility 0.3s;
+}
+.mobile-menu-backdrop.is-open {
+  opacity: 1 !important; visibility: visible !important; pointer-events: auto !important;
+}
+
+.mobile-menu-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  padding-top: 80px; background: rgba(18, 20, 29, 0.98);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  z-index: 995; display: flex; flex-direction: column;
+  transform: translateY(-100%); opacity: 0; visibility: hidden; pointer-events: none;
+  transition: transform 0.35s cubic-bezier(.16, .84, .44, 1), opacity 0.3s ease, visibility 0.35s;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.mobile-menu-overlay.is-open {
+  transform: translateY(0) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* FAQ Accordion */
+.faq-a { max-height: 0; overflow: hidden; transition: max-height .35s cubic-bezier(.16, .84, .44, 1); }
+.faq-item.is-open .faq-a { max-height: 300px; }
+.faq-item.is-open .plus { transform: rotate(45deg); color: #00F5A0; }
+
+/* Scrollbar hide utility */
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
