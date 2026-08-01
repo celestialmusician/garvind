@@ -1,0 +1,19 @@
+# Render Deployment Specification for GARVIND 3D Studio Web App & Express Backend
+services:
+  - type: web
+    name: garvind-studio
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: NODE_ENV
+        value: production
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: WHATSAPP_NUMBER
+        sync: false
