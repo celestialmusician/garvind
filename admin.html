@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Admin Dashboard — GARVIND 3D Printing Studio</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A0B10">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- Tailwind CSS v4 Browser Engine -->
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+<!-- Custom Styles -->
+<link rel="stylesheet" href="css/style.css?v=8">
+
+<!-- Favicon -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230A0B10%22/><path d=%22M20 70 L50 20 L80 70 Z%22 fill=%22%2300F5A0%22/></svg>">
+</head>
+<body class="bg-[#0A0B10] text-[#F5F3EE] font-sans antialiased selection:bg-[#00F5A0] selection:text-neutral-950">
+
+<!-- ============ MACRO BOKEH CURSOR LENS ============ -->
+<div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+
+<!-- ============ NAV HEADER ============ -->
+<header class="fixed top-0 inset-x-0 z-[1000] flex items-center justify-between px-6 md:px-16 py-4 bg-[#0A0B10]/90 backdrop-blur-xl border-b border-white/10 transition-all duration-300" id="siteNav">
+  <a href="index.html" class="font-['Space_Grotesk'] font-bold text-xl tracking-wider flex items-center gap-2 text-white group" aria-label="GARVIND Home">
+    <span class="text-[#00F5A0]">◆</span> GARVIND <span class="text-xs font-mono bg-[#00F5A0]/20 text-[#00F5A0] border border-[#00F5A0]/40 px-2 py-0.5 rounded-full font-bold ml-1">ADMIN</span>
+  </a>
+  
+  <nav class="hidden lg:flex items-center gap-8 text-sm font-medium">
+    <a href="index.html" class="text-neutral-300 hover:text-white transition-colors">Main Site ↗</a>
+    <a href="shop.html" class="text-neutral-300 hover:text-white transition-colors">Catalog</a>
+    <a href="custom.html" class="text-neutral-300 hover:text-white transition-colors">Submit Brief</a>
+  </nav>
+
+  <div class="flex items-center gap-3">
+    <button type="button" class="btn-magnetic text-xs font-mono font-bold px-4 py-2 rounded-full border border-white/20 hover:border-red-400 hover:text-red-400 transition-all cursor-pointer" id="adminLogoutBtn">
+      Lock Dashboard
+    </button>
+  </div>
+</header>
+
+<main class="pt-32 pb-24 px-6 md:px-16 min-h-screen">
+
+  <!-- ============ AUTH PASSKEY OVERLAY ============ -->
+  <dialog class="modal-dialog fixed inset-0 m-auto bg-[#181B26] border border-white/20 rounded-3xl p-8 max-w-md w-[90vw] shadow-2xl backdrop:bg-black/90 backdrop:backdrop-blur-xl text-white" id="authModal">
+    <form class="flex flex-col gap-4 text-center" id="authForm">
+      <span class="text-3xl">🔐</span>
+      <h2 class="font-['Space_Grotesk'] text-2xl font-bold">GARVIND Studio Admin</h2>
+      <p class="text-xs text-neutral-400 leading-relaxed">Enter your studio passkey to access order management &amp; 3D file downloads.</p>
+      
+      <input type="password" id="passkeyInput" placeholder="Enter Studio Passkey..." required autofocus class="w-full bg-[#0A0B10] border border-white/20 rounded-xl px-4 py-3 text-center font-mono text-sm text-white focus:border-[#00F5A0] outline-none">
+      
+      <p class="text-xs text-red-400 hidden" id="authErrorMsg">Incorrect passkey. Please try again.</p>
+
+      <button type="submit" class="btn-magnetic w-full font-semibold px-6 py-3 rounded-full bg-[#00F5A0] text-neutral-950 hover:bg-[#34ffb2] transition-all cursor-pointer shadow-lg shadow-[#00F5A0]/20">
+        Unlock Dashboard
+      </button>
+    </form>
+  </dialog>
+
+  <!-- ============ DASHBOARD ANALYTICS OVERVIEW ============ -->
+  <div class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6" data-scroll-reveal>
+    <div>
+      <span class="font-mono text-xs text-[#00F5A0] uppercase tracking-widest block mb-2">// studio control center</span>
+      <h1 class="font-['Space_Grotesk'] text-3xl sm:text-5xl font-bold tracking-tight">Customer Orders &amp; 3D Files</h1>
+    </div>
+
+    <button type="button" class="btn-magnetic inline-flex items-center gap-2 text-xs font-semibold px-5 py-2.5 rounded-full border border-white/20 hover:border-[#00F5A0] hover:text-[#00F5A0] transition-all cursor-pointer" id="refreshOrdersBtn">
+      <span>🔄 Refresh Orders</span>
+    </button>
+  </div>
+
+  <!-- Stat Cards Grid -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10" data-scroll-reveal class="stagger-1">
+    <div class="bg-[#181B26] border border-white/10 rounded-2xl p-5 flex flex-col justify-between">
+      <span class="font-mono text-xs text-neutral-400 uppercase tracking-wider">Total Orders</span>
+      <div class="font-['Space_Grotesk'] text-3xl font-bold text-white mt-2" id="statTotal">0</div>
+    </div>
+    <div class="bg-[#181B26] border border-white/10 rounded-2xl p-5 flex flex-col justify-between">
+      <span class="font-mono text-xs text-[#ffd700] uppercase tracking-wider">Pending Quotes</span>
+      <div class="font-['Space_Grotesk'] text-3xl font-bold text-[#ffd700] mt-2" id="statPending">0</div>
+    </div>
+    <div class="bg-[#181B26] border border-white/10 rounded-2xl p-5 flex flex-col justify-between">
+      <span class="font-mono text-xs text-[#00D2FF] uppercase tracking-wider">In-Print</span>
+      <div class="font-['Space_Grotesk'] text-3xl font-bold text-[#00D2FF] mt-2" id="statPrinting">0</div>
+    </div>
+    <div class="bg-[#181B26] border border-white/10 rounded-2xl p-5 flex flex-col justify-between">
+      <span class="font-mono text-xs text-[#00F5A0] uppercase tracking-wider">Shipped</span>
+      <div class="font-['Space_Grotesk'] text-3xl font-bold text-[#00F5A0] mt-2" id="statShipped">0</div>
+    </div>
+  </div>
+
+  <!-- Filter Status Tabs -->
+  <div class="flex gap-2 overflow-x-auto pb-4 mb-8 scrollbar-none" id="orderFilterTabs" role="tablist" data-scroll-reveal class="stagger-2">
+    <button class="filter-chip is-active px-4 py-2 rounded-full border border-white/20 bg-white text-neutral-950 text-xs font-semibold cursor-pointer min-h-[38px]" data-status="all">All Orders</button>
+    <button class="filter-chip px-4 py-2 rounded-full border border-white/20 bg-transparent text-neutral-300 text-xs font-medium cursor-pointer min-h-[38px] hover:text-white" data-status="Pending">Pending</button>
+    <button class="filter-chip px-4 py-2 rounded-full border border-white/20 bg-transparent text-neutral-300 text-xs font-medium cursor-pointer min-h-[38px] hover:text-white" data-status="Slicing">Slicing</button>
+    <button class="filter-chip px-4 py-2 rounded-full border border-white/20 bg-transparent text-neutral-300 text-xs font-medium cursor-pointer min-h-[38px] hover:text-white" data-status="Printing">Printing</button>
+    <button class="filter-chip px-4 py-2 rounded-full border border-white/20 bg-transparent text-neutral-300 text-xs font-medium cursor-pointer min-h-[38px] hover:text-white" data-status="Completed">Completed</button>
+    <button class="filter-chip px-4 py-2 rounded-full border border-white/20 bg-transparent text-neutral-300 text-xs font-medium cursor-pointer min-h-[38px] hover:text-white" data-status="Shipped">Shipped</button>
+  </div>
+
+  <!-- Orders Container -->
+  <div class="flex flex-col gap-5" id="ordersListContainer" aria-live="polite">
+    <!-- Rendered dynamically -->
+  </div>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-[#12141D] py-6 border-t border-white/10 px-6 md:px-16 text-center font-mono text-xs text-neutral-400">
+  © GARVIND Studio Admin Control Center. All customer files secured in local studio storage.
+</footer>
+
+<script>
+(function adminDashboard() {
+  const PASSKEY = "garvind2026"; // Change to your custom passkey
+  const authModal = document.getElementById("authModal");
+  const authForm = document.getElementById("authForm");
+  const passkeyInput = document.getElementById("passkeyInput");
+  const authErrorMsg = document.getElementById("authErrorMsg");
+  const logoutBtn = document.getElementById("adminLogoutBtn");
+  const refreshBtn = document.getElementById("refreshOrdersBtn");
+  const filterTabs = document.getElementById("orderFilterTabs");
+  const listContainer = document.getElementById("ordersListContainer");
+
+  let orders = [];
+  let currentFilter = "all";
+
+  // Check Session Storage
+  function checkAuth() {
+    const isAuthed = sessionStorage.getItem("garvind_admin_authed") === "true";
+    if (!isAuthed) {
+      if (typeof authModal.showModal === "function") authModal.showModal();
+    } else {
+      if (typeof authModal.close === "function") authModal.close();
+      fetchOrders();
+    }
+  }
+
+  authForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (passkeyInput.value === PASSKEY) {
+      sessionStorage.setItem("garvind_admin_authed", "true");
+      authErrorMsg.classList.add("hidden");
+      authModal.close();
+      fetchOrders();
+    } else {
+      authErrorMsg.classList.remove("hidden");
+      passkeyInput.value = "";
+    }
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    sessionStorage.removeItem("garvind_admin_authed");
+    location.reload();
+  });
+
+  function fetchOrders() {
+    listContainer.innerHTML = `<div class="text-center py-16 text-neutral-400 font-mono text-sm animate-pulse">Loading studio orders...</div>`;
+    fetch("/api/orders")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          orders = data.orders || [];
+          updateStats();
+          renderOrders();
+        }
+      })
+      .catch(err => {
+        listContainer.innerHTML = `<div class="text-center py-12 text-red-400 font-mono text-sm">Failed to connect to backend server. Make sure node server.js is running.</div>`;
+      });
+  }
+
+  function updateStats() {
+    document.getElementById("statTotal").textContent = orders.length;
+    document.getElementById("statPending").textContent = orders.filter(o => o.status === "Pending").length;
+    document.getElementById("statPrinting").textContent = orders.filter(o => o.status === "Printing" || o.status === "Slicing").length;
+    document.getElementById("statShipped").textContent = orders.filter(o => o.status === "Shipped" || o.status === "Completed").length;
+  }
+
+  function renderOrders() {
+    let filtered = orders;
+    if (currentFilter !== "all") {
+      filtered = orders.filter(o => o.status === currentFilter);
+    }
+
+    if (filtered.length === 0) {
+      listContainer.innerHTML = `
+        <div class="bg-[#181B26] border border-white/10 rounded-2xl p-12 text-center text-neutral-400">
+          <span class="text-3xl block mb-2">📭</span>
+          <h3 class="font-['Space_Grotesk'] text-lg font-bold text-white mb-1">No orders found</h3>
+          <p class="text-xs">There are no orders matching status "${currentFilter}".</p>
+        </div>`;
+      return;
+    }
+
+    listContainer.innerHTML = filtered.map(o => `
+      <div class="bg-[#181B26] border border-white/15 rounded-2xl p-6 flex flex-col gap-4 hover:border-white/30 transition-all shadow-xl">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-white/10 pb-4">
+          <div class="flex items-center gap-3">
+            <span class="font-mono text-base font-bold text-[#00F5A0]">${o.orderId}</span>
+            <span class="font-mono text-xs bg-black/50 border border-white/10 px-2.5 py-0.5 rounded-full text-neutral-300">${new Date(o.createdAt).toLocaleString()}</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="font-mono text-xs text-neutral-400">Status:</label>
+            <select class="order-status-select bg-[#0A0B10] border border-white/20 rounded-lg px-3 py-1.5 text-xs font-semibold outline-none text-white cursor-pointer" data-id="${o.id}">
+              <option value="Pending" ${o.status === "Pending" ? "selected" : ""}>⏳ Pending</option>
+              <option value="Slicing" ${o.status === "Slicing" ? "selected" : ""}>⚙️ Slicing</option>
+              <option value="Printing" ${o.status === "Printing" ? "selected" : ""}>🔥 Printing</option>
+              <option value="Completed" ${o.status === "Completed" ? "selected" : ""}>✨ Completed</option>
+              <option value="Shipped" ${o.status === "Shipped" ? "selected" : ""}>📦 Shipped</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div>
+            <span class="font-mono text-neutral-400 block mb-1">CUSTOMER INFO</span>
+            <strong class="text-white text-sm block">${o.name}</strong>
+            <span class="text-neutral-300 font-mono block mt-0.5">${o.contact}</span>
+          </div>
+
+          <div>
+            <span class="font-mono text-neutral-400 block mb-1">PRINT SPECS</span>
+            <span class="text-white block">Category: <strong>${o.category}</strong></span>
+            <span class="text-white block mt-0.5">Material: <strong>${o.material}</strong></span>
+          </div>
+
+          <div>
+            <span class="font-mono text-neutral-400 block mb-1">3D FILE / ATTACHMENT</span>
+            ${o.filePath ? `
+              <div class="flex items-center gap-2 bg-[#0A0B10] p-2.5 rounded-xl border border-white/10">
+                <span class="text-lg">📄</span>
+                <div class="flex flex-col overflow-hidden flex-1">
+                  <span class="font-semibold text-white truncate">${o.fileOriginalName}</span>
+                  <span class="font-mono text-[10px] text-neutral-400">${o.fileSizeMB} MB</span>
+                </div>
+                <a href="${o.filePath}" download="${o.fileOriginalName}" class="btn-magnetic bg-[#00F5A0] text-neutral-950 px-3 py-1.5 rounded-lg font-semibold hover:bg-[#34ffb2] transition-all text-xs">
+                  Download
+                </a>
+              </div>
+            ` : `<span class="text-neutral-400 italic">No file attached</span>`}
+          </div>
+        </div>
+
+        <div class="bg-[#0A0B10] border border-white/10 rounded-xl p-3.5 text-xs text-neutral-300 leading-relaxed">
+          <strong class="text-white font-mono block mb-1">Requirements / Details:</strong>
+          ${o.description}
+        </div>
+
+        <div class="flex justify-end pt-1">
+          <a href="https://wa.me/${o.contact.replace(/\D/g, '')}?text=${encodeURIComponent('Hi ' + o.name + '! Updating you on your GARVIND 3D order (' + o.orderId + '). Current Status: ' + o.status)}" target="_blank" rel="noopener" class="btn-magnetic inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full border border-white/20 hover:border-[#00F5A0] hover:text-[#00F5A0] transition-all">
+            💬 Open Customer WhatsApp Chat
+          </a>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  // Event Handlers
+  refreshBtn.addEventListener("click", fetchOrders);
+
+  filterTabs.addEventListener("click", (e) => {
+    const btn = e.target.closest(".filter-chip");
+    if (!btn) return;
+    filterTabs.querySelectorAll(".filter-chip").forEach(c => {
+      c.classList.remove("is-active", "bg-white", "text-neutral-950", "font-semibold");
+      c.classList.add("bg-transparent", "text-neutral-300");
+    });
+    btn.classList.add("is-active", "bg-white", "text-neutral-950", "font-semibold");
+    btn.classList.remove("bg-transparent", "text-neutral-300");
+    currentFilter = btn.dataset.status;
+    renderOrders();
+  });
+
+  listContainer.addEventListener("change", (e) => {
+    const select = e.target.closest(".order-status-select");
+    if (!select) return;
+    const id = select.dataset.id;
+    const newStatus = select.value;
+
+    fetch(`/api/orders/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        const order = orders.find(o => o.id == id);
+        if (order) order.status = newStatus;
+        updateStats();
+      }
+    });
+  });
+
+  checkAuth();
+})();
+</script>
+</body>
+</html>

@@ -213,6 +213,7 @@ app.get("/shop", (req, res) => res.sendFile(path.join(__dirname, "shop.html")));
 app.get("/calculator", (req, res) => res.sendFile(path.join(__dirname, "calculator.html")));
 app.get("/custom", (req, res) => res.sendFile(path.join(__dirname, "custom.html")));
 app.get("/gallery", (req, res) => res.sendFile(path.join(__dirname, "gallery.html")));
+app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "admin.html")));
 
 // Catch-all fallback route
 app.get("*", (req, res) => {
