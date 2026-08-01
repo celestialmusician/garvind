@@ -7,6 +7,7 @@ const path = require("path");
 const fs = require("fs");
 const cors = require("cors");
 const multer = require("multer");
+const db = require("./db");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -47,87 +48,6 @@ const upload = multer({
   }
 });
 
-// Central Studio Database (In-Memory / JSON File backing)
-const PRODUCTS_DATA = [
-  {
-    id: "dragon-01",
-    name: "Articulated Crystal Dragon",
-    category: "figure",
-    price: 599,
-    priceDisplay: "₹599",
-    blurb: "Print-in-place, fully poseable joints, mesmerizing scale details.",
-    description: "Multi-jointed articulated dragon printed in high-precision layer height. No assembly needed, straight off the heatbed and ready to display or fidget.",
-    gradient: ["#2d1138", "#7C5CFC"],
-    image: "images/dragon.png",
-    shape: "dragon",
-    popular: true,
-    dimensions: "24cm x 6cm x 4cm",
-    printTime: "6.5 hrs",
-    materialsAvailable: ["PLA Matte Black", "Silk Gold PLA", "Galaxy Purple PLA", "Neon Mint PLA"],
-    colorsAvailable: ["#ffd700", "#7C5CFC", "#3DFFC0", "#FF6B35"]
-  },
-  {
-    id: "keychain-anime",
-    name: "Custom Character Keychain",
-    category: "keychain",
-    price: 149,
-    priceDisplay: "₹149",
-    blurb: "Pick any anime, gaming, or custom logo silhouette in dual-tone color.",
-    description: "Durable dual-layer keychains printed with reinforced eyelets. Weather-resistant PLA finish that holds crisp details.",
-    gradient: ["#3a2410", "#FF6B35"],
-    image: "images/keychain.png",
-    shape: "keychain",
-    popular: true,
-    dimensions: "5cm x 5cm x 0.4cm",
-    printTime: "45 mins",
-    materialsAvailable: ["PLA Matte Black", "Silk Gold PLA", "Neon Mint PLA"],
-    colorsAvailable: ["#FF6B35", "#3DFFC0", "#ffd700", "#ffffff"]
-  },
-  {
-    id: "planter-geo",
-    name: "Low-Poly Geometric Planter",
-    category: "decor",
-    price: 399,
-    priceDisplay: "₹399",
-    blurb: "Modern low-poly planter shell with inner drainage tray.",
-    description: "Sleek angular geometric succulent planter. Waterproof coated interior with removable bottom drip-tray for easy plant care.",
-    gradient: ["#0d2b24", "#3DFFC0"],
-    image: "images/planter.png",
-    shape: "planter",
-    popular: false,
-    dimensions: "12cm x 12cm x 10cm",
-    printTime: "4 hrs",
-    materialsAvailable: ["PLA Matte Black", "Neon Mint PLA", "Silk Gold PLA"],
-    colorsAvailable: ["#3DFFC0", "#1a1a22", "#ffd700"]
-  },
-  {
-    id: "armor-vambrace",
-    name: "Cosplay Cyber Vambrace",
-    category: "prop",
-    price: 1299,
-    priceDisplay: "₹1,299",
-    blurb: "Segmented forearm armor piece, sanded and primer-ready.",
-    description: "High-impact PETG/PLA cosplay gauntlet. Ergonomically curved to fit forearms, includes inner strap slots and smooth surface for painting.",
-    gradient: ["#241c3d", "#7C5CFC"],
-    image: "images/helmet.png",
-    shape: "armor",
-    popular: true,
-    dimensions: "22cm x 10cm x 9cm",
-    printTime: "14 hrs",
-    materialsAvailable: ["PLA Matte Black", "PETG Durable", "Silk Gold PLA"],
-    colorsAvailable: ["#1a1a22", "#7C5CFC", "#ffd700"]
-  }
-];
-
-const MATERIALS_DATA = [
-  { id: "pla-matte", name: "PLA Matte Black", hex: "#1a1a22", roughness: 0.85, metalness: 0.1, density: 1.24, costPerGram: 2.5 },
-  { id: "silk-gold", name: "Silk Gold PLA", hex: "#ffd700", roughness: 0.25, metalness: 0.8, density: 1.24, costPerGram: 3.2 },
-  { id: "galaxy-purple", name: "Galaxy Purple PLA", hex: "#7C5CFC", roughness: 0.35, metalness: 0.5, density: 1.24, costPerGram: 3.0 },
-  { id: "neon-mint", name: "Neon Mint PLA", hex: "#3DFFC0", roughness: 0.30, metalness: 0.3, density: 1.24, costPerGram: 3.0 },
-  { id: "tpu-flex", name: "TPU Flexible (Black)", hex: "#2b2b36", roughness: 0.90, metalness: 0.0, density: 1.21, costPerGram: 4.0 },
-  { id: "resin-grey", name: "Resin High-Detail", hex: "#8A8A94", roughness: 0.20, metalness: 0.1, density: 1.15, costPerGram: 6.0 }
-];
-
 /* ==================== REST API ENDPOINTS ==================== */
 
 // 1. Health Check Endpoint
@@ -135,35 +55,31 @@ app.get("/api/health", (req, res) => {
   res.json({
     status: "online",
     studio: "GARVIND 3D Printing Studio",
+    database: "SQLite (database.sqlite)",
     uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString()
   });
 });
 
-// 2. Product Catalog API
+// 2. Product Catalog API (Queried directly from SQL Database)
 app.get("/api/products", (req, res) => {
-  const { category, search } = req.query;
-  let results = [...PRODUCTS_DATA];
-
-  if (category && category !== "all") {
-    results = results.filter(p => p.category === category);
+  try {
+    const { category, search } = req.query;
+    const products = db.getProducts({ category, search });
+    res.json({ success: true, count: products.length, products: products });
+  } catch (err) {
+    res.status(500).json({ success: false, error: "Failed to query products database" });
   }
-
-  if (search) {
-    const q = search.toLowerCase();
-    results = results.filter(p => 
-      p.name.toLowerCase().includes(q) || 
-      p.blurb.toLowerCase().includes(q) ||
-      p.category.toLowerCase().includes(q)
-    );
-  }
-
-  res.json({ success: true, count: results.length, products: results });
 });
 
-// 3. Materials Specs API
+// 3. Materials Specs API (Queried directly from SQL Database)
 app.get("/api/materials", (req, res) => {
-  res.json({ success: true, materials: MATERIALS_DATA });
+  try {
+    const materials = db.getMaterials();
+    res.json({ success: true, count: materials.length, materials: materials });
+  } catch (err) {
+    res.status(500).json({ success: false, error: "Failed to query materials database" });
+  }
 });
 
 // 4. Server-Side 3D Slicing Calculator API
@@ -177,7 +93,8 @@ app.post("/api/quote", (req, res) => {
     const infillPct = Math.max(10, parseInt(infill) || 20);
     const qty = Math.max(1, parseInt(quantity) || 1);
 
-    const matInfo = MATERIALS_DATA.find(m => m.id === material) || MATERIALS_DATA[0];
+    const materials = db.getMaterials();
+    const matInfo = materials.find(m => m.id === material) || materials[0];
 
     const boundingVolume = x * y * z;
     const shellRatio = 0.25;
@@ -211,7 +128,7 @@ app.post("/api/quote", (req, res) => {
   }
 });
 
-// 5. Custom Order Brief & Multipart File Upload API
+// 5. Custom Order Brief & Multipart File Upload API (Inserted into SQL Orders Table)
 app.post("/api/custom-order", upload.single("file"), (req, res) => {
   try {
     const { name, contact, category, material, description } = req.body;
@@ -225,6 +142,19 @@ app.post("/api/custom-order", upload.single("file"), (req, res) => {
       sizeMB: (uploadedFile.size / (1024 * 1024)).toFixed(2),
       path: `/uploads/${uploadedFile.filename}`
     } : null;
+
+    // Save record to persistent SQLite database
+    const savedRecord = db.createOrder({
+      orderId: orderId,
+      name: name || "Anonymous",
+      contact: contact || "Not provided",
+      category: category || "General 3D Print",
+      material: material || "PLA Matte Black",
+      description: description || "No notes provided",
+      filePath: fileInfo ? fileInfo.path : null,
+      fileOriginalName: fileInfo ? fileInfo.originalName : null,
+      fileSizeMB: fileInfo ? fileInfo.sizeMB : null
+    });
 
     const waText =
 `Hi GARVIND! Custom Order Brief (${orderId}):
@@ -240,13 +170,32 @@ Details: ${description}`;
 
     res.json({
       success: true,
-      orderId: orderId,
-      fileUploaded: !!fileInfo,
-      fileDetails: fileInfo,
+      order: savedRecord,
       whatsappUrl: waUrl
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message || "Failed to process custom order" });
+  }
+});
+
+// 6. Orders Retrieval API
+app.get("/api/orders", (req, res) => {
+  try {
+    const orders = db.getOrders();
+    res.json({ success: true, count: orders.length, orders: orders });
+  } catch (err) {
+    res.status(500).json({ success: false, error: "Failed to retrieve orders" });
+  }
+});
+
+// 7. Order Status Update API
+app.patch("/api/orders/:id", (req, res) => {
+  try {
+    const { status } = req.body;
+    const updated = db.updateOrderStatus(req.params.id, status);
+    res.json({ success: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, error: "Failed to update order status" });
   }
 });
 
@@ -274,6 +223,7 @@ app.get("*", (req, res) => {
 app.listen(PORT, () => {
   console.log(`==================================================`);
   console.log(`🚀 GARVIND Express Backend Server Running!`);
+  console.log(`🗄️ Database: SQLite (database.sqlite)`);
   console.log(`🌐 Server URL: http://localhost:${PORT}`);
   console.log(`📁 Uploads Dir: ${uploadsDir}`);
   console.log(`==================================================`);
