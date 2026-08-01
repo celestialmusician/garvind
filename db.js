@@ -5,12 +5,25 @@
 const Database = require("better-sqlite3");
 const path = require("path");
 
-const dbPath = path.join(__dirname, "database.sqlite");
-const db = new Database(dbPath);
-
-// Enable foreign keys & WAL mode for speed and performance
-db.pragma("journal_mode = WAL");
-db.pragma("foreign_keys = ON");
+/* ---------------- Resilient Database Initialization ---------------- */
+let db;
+try {
+  const dbPath = path.join(__dirname, "database.sqlite");
+  db = new Database(dbPath);
+  db.pragma("journal_mode = WAL");
+  db.pragma("foreign_keys = ON");
+} catch (err) {
+  console.warn("Local SQLite file unavailable/read-only, attempting /tmp storage fallback...");
+  try {
+    const tmpPath = path.join("/tmp", "database.sqlite");
+    db = new Database(tmpPath);
+    db.pragma("foreign_keys = ON");
+  } catch (err2) {
+    console.warn("Read-only environment detected (Vercel/Lambda). Operating in-memory mode.");
+    db = new Database(":memory:");
+    db.pragma("foreign_keys = ON");
+  }
+}
 
 /* ---------------- Table Initialization ---------------- */
 function initDatabase() {
