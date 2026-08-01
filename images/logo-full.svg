@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160" fill="none">
+  <!-- GARVIND Full Brand Logo SVG -->
+  <g fill="currentColor">
+    <!-- Icon Mark -->
+    <g transform="translate(10, 10) scale(0.75)">
+      <!-- Left Wing -->
+      <polygon points="25,30 92,30 92,60 55,60" />
+      <!-- Right Wing -->
+      <polygon points="108,30 175,30 145,60 108,60" />
+      <!-- Center Stem -->
+      <rect x="82" y="60" width="26" height="90" />
+      <!-- Semicircle -->
+      <path d="M 108,60 A 45,45 0 0,1 108,150 Z" />
+    </g>
+
+    <!-- Brand Typography -->
+    <text x="170" y="95" font-family="'Space Grotesk', 'Inter', sans-serif" font-weight="800" font-size="64" letter-spacing="2">GARVIND</text>
+    <text x="172" y="132" font-family="'Space Grotesk', 'Inter', sans-serif" font-weight="600" font-size="16" letter-spacing="7" opacity="0.75">MAKE LIFE EASIER</text>
+  </g>
+</svg>
