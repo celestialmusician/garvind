@@ -87,7 +87,7 @@ body {
   display: flex; align-items: center; justify-content: center;
   transition: opacity .5s ease, visibility .5s ease;
 }
-.preloader.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.preloader.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; display: none !important; }
 
 /* Frosted Titanium Glass Cards */
 .tilt-card {

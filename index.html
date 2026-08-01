@@ -43,6 +43,25 @@
     <span class="font-mono text-xs text-neutral-400" id="preloaderPct">0%</span>
     <span class="block mt-1.5 font-mono text-[11px] text-neutral-400" id="preloaderLabel">heating heatbed &amp; slicing parametric model…</span>
   </div>
+  <script>
+    (function() {
+      var p = document.getElementById("preloader");
+      if (!p) return;
+      var f = document.getElementById("preloaderFill");
+      var c = document.getElementById("preloaderPct");
+      var val = 0;
+      var timer = setInterval(function() {
+        val += 20;
+        if (f) f.style.width = Math.min(val, 100) + "%";
+        if (c) c.textContent = Math.min(val, 100) + "%";
+        if (val >= 100) {
+          clearInterval(timer);
+          setTimeout(function() { p.classList.add("is-hidden"); }, 100);
+        }
+      }, 40);
+      setTimeout(function() { p.classList.add("is-hidden"); }, 800);
+    })();
+  </script>
 </div>
 
 <!-- ============ MACRO BOKEH CURSOR LENS ============ -->

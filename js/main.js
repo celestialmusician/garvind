@@ -5,6 +5,46 @@
 (function () {
   "use strict";
 
+  /* ---------------- Preloader (Instant Execution) ---------------- */
+  (function preloader() {
+    const pre = document.getElementById("preloader");
+    const fill = document.getElementById("preloaderFill");
+    const pct = document.getElementById("preloaderPct");
+    const label = document.getElementById("preloaderLabel");
+    if (!pre) return;
+
+    const labels = [
+      "heating heatbed & nozzle…",
+      "homing X/Y/Z axes…",
+      "slicing parametric_sculpture.stl…",
+      "calibrating mesh bed leveling…",
+      "materializing parametric layers…"
+    ];
+
+    let p = 0;
+    const t = setInterval(() => {
+      p += Math.random() * 28 + 12;
+      if (p >= 100) { p = 100; clearInterval(t); }
+      if (fill) fill.style.width = p + "%";
+      if (pct) pct.textContent = Math.floor(p) + "%";
+      
+      if (label) {
+        const labelIdx = Math.min(Math.floor((p / 100) * labels.length), labels.length - 1);
+        label.textContent = labels[labelIdx];
+      }
+
+      if (p === 100) {
+        setTimeout(() => pre.classList.add("is-hidden"), 150);
+      }
+    }, 50);
+
+    // Guaranteed Failsafe: Hide preloader after 1 second under all conditions
+    setTimeout(() => pre.classList.add("is-hidden"), 1000);
+    window.addEventListener("load", () => {
+      setTimeout(() => pre.classList.add("is-hidden"), 300);
+    });
+  })();
+
   // Set current year safely
   const yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
