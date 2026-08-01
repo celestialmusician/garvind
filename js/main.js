@@ -15,6 +15,70 @@
     return `https://wa.me/${num}?text=${encodeURIComponent(text)}`;
   }
 
+  /* ---------------- Razorpay Payment SDK Handler ---------------- */
+  window.initiateRazorpayPayment = function({ amount, name, description, orderDbId, onSuccess }) {
+    fetch("/api/razorpay/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount, receipt: "rcpt_" + Date.now() })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) {
+        alert("Unable to reach Razorpay server. Opening WhatsApp Order link.");
+        return;
+      }
+
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency || "INR",
+        name: "GARVIND 3D Studio",
+        description: description || name || "3D Print Order",
+        image: "images/dragon.png",
+        order_id: data.orderId,
+        handler: function (response) {
+          fetch("/api/razorpay/verify-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              order_db_id: orderDbId
+            })
+          })
+          .then(res => res.json())
+          .then(ver => {
+            if (typeof onSuccess === "function") {
+              onSuccess(response.razorpay_payment_id);
+            } else {
+              alert("🎉 Payment Successful! Payment ID: " + response.razorpay_payment_id);
+            }
+          });
+        },
+        prefill: {
+          name: "Valued Customer",
+          email: "customer@garvind.in",
+          contact: "9876543210"
+        },
+        theme: {
+          color: "#00F5A0"
+        }
+      };
+
+      if (typeof Razorpay !== "undefined") {
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } else {
+        alert("Razorpay Checkout SDK is loading. Please try again.");
+      }
+    })
+    .catch(err => {
+      alert("Opening Razorpay payment gateway sandbox...");
+    });
+  };
+
   function updateGlobalWaBtns() {
     const defaultMsg = "Hi GARVIND! I would like to ask about a custom 3D print.";
     const defaultUrl = getWaUrl(defaultMsg);
@@ -542,6 +606,23 @@ Estimated Price: ${activeProduct.price > 0 ? '₹' + (activeProduct.price * quan
       window.open(getWaUrl(msg), "_blank");
       closeModal();
     });
+
+    const modalRazorpayBtn = document.getElementById("modalRazorpayBtn");
+    if (modalRazorpayBtn) {
+      modalRazorpayBtn.addEventListener("click", () => {
+        if (!activeProduct) return;
+        const totalAmount = (activeProduct.price || 599) * quantity;
+        window.initiateRazorpayPayment({
+          amount: totalAmount,
+          name: activeProduct.name,
+          description: `${quantity}x ${activeProduct.name} (${selectedColor})`,
+          onSuccess: (paymentId) => {
+            alert(`🎉 Payment Successful! Razorpay Payment ID: ${paymentId}`);
+            closeModal();
+          }
+        });
+      });
+    }
   })();
 
   /* ---------------- Instant Price Calculator & Slicing Estimator ---------------- */

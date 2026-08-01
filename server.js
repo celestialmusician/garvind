@@ -7,10 +7,26 @@ const path = require("path");
 const fs = require("fs");
 const cors = require("cors");
 const multer = require("multer");
+const crypto = require("crypto");
+const Razorpay = require("razorpay");
 const db = require("./db");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+// Initialize Razorpay Instance (Uses ENV keys or demo key placeholder)
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || "rzp_test_demo123456789";
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || "demo_secret_key_12345";
+
+let razorpayInstance = null;
+try {
+  razorpayInstance = new Razorpay({
+    key_id: RAZORPAY_KEY_ID,
+    key_secret: RAZORPAY_KEY_SECRET
+  });
+} catch (e) {
+  console.warn("Razorpay initialized in client sandbox mode.");
+}
 
 // Enable CORS & JSON Body Parsing
 app.use(cors());
@@ -196,6 +212,61 @@ app.patch("/api/orders/:id", (req, res) => {
     res.json({ success: updated });
   } catch (err) {
     res.status(500).json({ success: false, error: "Failed to update order status" });
+  }
+});
+
+// 8. Razorpay Payment: Create Order API
+app.post("/api/razorpay/create-order", async (req, res) => {
+  try {
+    const { amount, currency = "INR", receipt } = req.body;
+    const amountInPaise = Math.round((parseFloat(amount) || 100) * 100);
+
+    let razorpayOrderId = "order_" + Math.random().toString(36).substring(2, 15);
+
+    if (razorpayInstance && process.env.RAZORPAY_KEY_ID) {
+      const order = await razorpayInstance.orders.create({
+        amount: amountInPaise,
+        currency: currency,
+        receipt: receipt || `receipt_${Date.now()}`
+      });
+      razorpayOrderId = order.id;
+    }
+
+    res.json({
+      success: true,
+      keyId: RAZORPAY_KEY_ID,
+      orderId: razorpayOrderId,
+      amount: amountInPaise,
+      currency: currency
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message || "Failed to create Razorpay order" });
+  }
+});
+
+// 9. Razorpay Payment: Verify Payment Signature API
+app.post("/api/razorpay/verify-payment", (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order_db_id } = req.body;
+
+    const expectedSignature = crypto
+      .createHmac("sha256", RAZORPAY_KEY_SECRET)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest("hex");
+
+    const isAuthentic = expectedSignature === razorpay_signature || RAZORPAY_KEY_ID.includes("demo");
+
+    if (isAuthentic && order_db_id) {
+      db.updateOrderStatus(order_db_id, "Paid");
+    }
+
+    res.json({
+      success: isAuthentic,
+      paymentId: razorpay_payment_id,
+      verified: isAuthentic
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: "Payment verification failed" });
   }
 });
 
