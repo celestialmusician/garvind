@@ -51,7 +51,7 @@
 
   /* ---------------- Centralized WhatsApp Links ---------------- */
   function getWaUrl(text) {
-    const num = (typeof CONFIG !== "undefined" && CONFIG.whatsappNumber) ? CONFIG.whatsappNumber : "919876543210";
+    const num = (typeof CONFIG !== "undefined" && CONFIG.whatsappNumber) ? CONFIG.whatsappNumber : "917594943335";
     return `https://wa.me/${num}?text=${encodeURIComponent(text)}`;
   }
 
@@ -813,7 +813,21 @@ Material: ${data.get("material")}
 File Status: ${fileText}
 Details: ${data.get("description")}`;
 
-      window.open(getWaUrl(msg), "_blank");
+      fetch("/api/custom-order", {
+        method: "POST",
+        body: data
+      })
+      .then(res => res.json())
+      .then(resData => {
+        if (resData.whatsappUrl) {
+          window.open(resData.whatsappUrl, "_blank");
+        } else {
+          window.open(getWaUrl(msg), "_blank");
+        }
+      })
+      .catch(() => {
+        window.open(getWaUrl(msg), "_blank");
+      });
     });
   })();
 

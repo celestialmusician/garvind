@@ -7,7 +7,7 @@
 const CONFIG = {
   studioName: "GARVIND",
   tagline: "Custom 3D Printing Studio — Keychains, Figurines, Props & Desk Decor",
-  whatsappNumber: "919876543210", // Change to your real WhatsApp number (country code + number, no + or spaces)
+  whatsappNumber: "917594943335", // Official GARVIND Studio WhatsApp Number (+91 75949 43335)
   email: "hello@garvind.in",
   location: "Thiruvananthapuram, Kerala, India",
   instagramUrl: "https://www.instagram.com/garv_ind",

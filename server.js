@@ -188,7 +188,7 @@ Material: ${material}
 File: ${fileInfo ? fileInfo.originalName + ' (' + fileInfo.sizeMB + 'MB)' : 'No file attached'}
 Details: ${description}`;
 
-    const num = "919876543210";
+    const num = process.env.WHATSAPP_NUMBER || "917594943335";
     const waUrl = `https://wa.me/${num}?text=${encodeURIComponent(waText)}`;
 
     res.json({
