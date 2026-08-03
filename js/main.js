@@ -64,8 +64,20 @@
     })
     .then(res => res.json())
     .then(data => {
-      if (!data.success) {
-        alert("Unable to reach Razorpay server. Opening WhatsApp Order link.");
+      const isDemo = !data.keyId || data.keyId.includes("demo") || data.keyId.startsWith("rzp_test_demo");
+
+      if (isDemo) {
+        const confirmWa = confirm(
+          `💳 GARVIND Payment Gateway Setup Notice:\n\n` +
+          `Item: ${name || "3D Print Order"}\n` +
+          `Amount: ₹${amount}\n\n` +
+          `To accept live online payments via Razorpay, add your live Razorpay Keys (RAZORPAY_KEY_ID & RAZORPAY_KEY_SECRET) in Render Environment Settings.\n\n` +
+          `Would you like to complete this order instantly via WhatsApp instead?`
+        );
+        if (confirmWa) {
+          const msg = `Hi GARVIND! I want to order: ${name || "3D Print"} (₹${amount}). Please confirm availability!`;
+          window.open(getWaUrl(msg), "_blank");
+        }
         return;
       }
 
@@ -100,7 +112,7 @@
         prefill: {
           name: "Valued Customer",
           email: "customer@garvind.in",
-          contact: "9876543210"
+          contact: "7594943335"
         },
         theme: {
           color: "#00F5A0"
@@ -108,14 +120,28 @@
       };
 
       if (typeof Razorpay !== "undefined") {
-        const rzp = new Razorpay(options);
-        rzp.open();
+        try {
+          const rzp = new Razorpay(options);
+          rzp.on('payment.failed', function (resp) {
+            const confirmWa = confirm("Razorpay Test Mode Notice: Real payments require live Razorpay keys. Would you like to order via WhatsApp?");
+            if (confirmWa) {
+              const msg = `Hi GARVIND! I want to order: ${name || "3D Print"} (₹${amount}). Please confirm!`;
+              window.open(getWaUrl(msg), "_blank");
+            }
+          });
+          rzp.open();
+        } catch (e) {
+          const msg = `Hi GARVIND! I want to order: ${name || "3D Print"} (₹${amount}). Please confirm availability!`;
+          window.open(getWaUrl(msg), "_blank");
+        }
       } else {
-        alert("Razorpay Checkout SDK is loading. Please try again.");
+        const msg = `Hi GARVIND! I want to order: ${name || "3D Print"} (₹${amount}). Please confirm availability!`;
+        window.open(getWaUrl(msg), "_blank");
       }
     })
     .catch(err => {
-      alert("Opening Razorpay payment gateway sandbox...");
+      const msg = `Hi GARVIND! I want to order: ${name || "3D Print"} (₹${amount}). Please confirm availability!`;
+      window.open(getWaUrl(msg), "_blank");
     });
   };
 
