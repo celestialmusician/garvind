@@ -2,6 +2,8 @@
    GARVIND — Parametric 3D Printing Studio Express Backend Server
    ========================================================================== */
 
+try { require("dotenv").config(); } catch (e) {}
+
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
